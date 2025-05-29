@@ -1,15 +1,13 @@
 package main
 
 import (
+	"blog-api/api"
+	"blog-api/db"
 	"context"
-	"fmt"
 	"log"
-	"os"
+	"time"
 
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 )
 
 func main() {
@@ -18,25 +16,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Sets the version of the Stable API on the client.
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(os.Getenv("MONGODB_URI")).SetServerAPIOptions(serverAPI)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	// Creates a new client and connects to the server.
-	client, err := mongo.Connect(opts)
+	err = db.Init(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Disconnect()
 
-	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	// Send a ping to confirm a successful connection
-	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
+	log.Fatal(api.Serve())
 }
