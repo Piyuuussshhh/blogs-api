@@ -64,7 +64,6 @@ func InsertBlog(ctx context.Context, blog models.Blog) error {
 }
 
 func UpdateBlog(ctx context.Context, id string, newBlog models.Blog) error {
-	fmt.Println(id)
 	_, err := collection.ReplaceOne(
 		ctx,
 		// Filter.
